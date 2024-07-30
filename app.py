@@ -11,6 +11,9 @@ import os
 
 app = Flask(__name__)
 
+api_key = os.getenv('GOOGLE_API_KEY')
+email_password = os.getenv('EMAIL_PASSWORD')
+
 def capture_photo():
     # Acceso a la webcam
     cam = cv2.VideoCapture(0)
@@ -79,6 +82,7 @@ def send_email(photo_path, location, address, maps_url):
 @app.route('/run', methods=['GET'])
 def run_script():
     api_key = "AIzaSyDBoTuvRrlDEq3I-_ZTP5vKfEIITIBQGYY"  # Reemplaza con tu clave de API de Google
+    
     photo_path = capture_photo()
     location, address, maps_url = get_location(api_key)
     if location:
