@@ -1,0 +1,5 @@
+Flask==2.1.1
+opencv-python==4.5.5.64
+requests==2.27.1
+smtplib==0.0.1
+email==6.0.0a1
