@@ -96,13 +96,14 @@ def send_email(photo_path, location, address, maps_url):
     if os.path.exists(photo_path):
         os.remove(photo_path)
         print(f"Archivo eliminado: {photo_path}")
+        
 # Captura y envía la foto
-photo_path = capture_photo()
-if photo_path:
-    location = (40.7128, -74.0060)  # Ejemplo de coordenadas
-    address = "Nueva York, NY"
-    maps_url = "https://maps.google.com/?q=40.7128,-74.0060"
-    send_email(photo_path, location, address, maps_url)
+# photo_path = capture_photo()
+# if photo_path:
+#     location = (40.7128, -74.0060)  # Ejemplo de coordenadas
+#     address = "Nueva York, NY"
+#     maps_url = "https://maps.google.com/?q=40.7128,-74.0060"
+#     send_email(photo_path, location, address, maps_url)
 
 @app.route('/run', methods=['GET'])
 def run_script():
