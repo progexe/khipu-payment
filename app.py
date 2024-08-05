@@ -85,7 +85,7 @@ def send_email(photo_path, location, address, maps_url):
     try:
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
-        server.login(fromaddr, "tu_contraseña_de_aplicación")  # Cambia aquí con la contraseña de aplicación
+        server.login(fromaddr, "ftbq cknu iztg adyu ")  # Cambia aquí con la contraseña de aplicación
         server.sendmail(fromaddr, toaddr, msg.as_string())
         server.quit()
         print("Correo enviado con éxito")
