@@ -14,3 +14,7 @@ requests==2.32.3
 urllib3==2.2.2
 Werkzeug==3.0.3
 gunicorn
+Flask
+requests
+pillow
+opencv-python-headless
